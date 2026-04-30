@@ -73,11 +73,11 @@ def main():
         num_points = int(total_time * sample_rate)  # 20 points
 
         # Create waveform: 0→0.3 (first 10), then 0.3→1 (next 10)
-        v1 = np.linspace(2, 1.5, num_points // 2, endpoint=False)
-        v2 = np.linspace(1.5, 1.2, num_points // 2)
+        v1 = np.linspace(5, 2, num_points // 2, endpoint=False)
+        v2 = np.linspace(2, 1, num_points // 2)
         voltage_profile = np.concatenate((v1, v2))
         
-        voltage_profile = np.array([2.0, 1.6, 1.1])
+        # voltage_profile = np.array([2.0, 1.6, 1.1])
                 
         # ── Configure every channel ───────────────────────────────────────
         for i in range(num_channels):
@@ -108,7 +108,7 @@ def main():
             # driver.transients[i].arm.count      = len(voltage_profile)
             
             driver.transients[i].trigger.source = keysight_ktb2900.ArmTriggerSource.TIMER
-            driver.transients[i].trigger.timer  = timedelta(milliseconds=900)
+            driver.transients[i].trigger.timer  = timedelta(milliseconds=5)
             driver.transients[i].trigger.count  = len(voltage_profile)
             # driver.transients[i].trigger.trigger_output_enabled  = True
             # # driver.transients[i].trigger.bypass = keysight_ktb2900.ArmTriggerBypass.OFF
@@ -123,15 +123,18 @@ def main():
             # Measurements setups
             # driver.measurements[i].arm.source     = keysight_ktb2900.ArmTriggerSource.AINT
             driver.measurements[i].trigger.source = keysight_ktb2900.ArmTriggerSource.TIMER  # waits for transient output trigger
-            driver.measurements[i].trigger.count  = num_points
-            driver.measurements[i].trigger.timer  = timedelta(milliseconds=100)
+            driver.measurements[i].trigger.count  = 101
+            driver.measurements[i].trigger.timer  = timedelta(milliseconds=1)
                 
             print(f"\n  Channel {i + 1} ({chan_str}) output ON  →  {VOLTAGE_V:+.4f} V")
 
-
+            time_0 = time.time()
             # driver.transients.arm_immediate(chan_str)
             # driver.transients.initiate(chan_str)            
             driver.trigger.initiate(chan_str)
+            
+            ctime = time.time() - time_0
+            print(f"Task finished in:\t {ctime:.4f}s")
             
             # Get measurements data
             current_results = driver.measurements.fetch_array_data(
@@ -149,6 +152,7 @@ def main():
             #     print(f"    [{idx}]:\t {val:.6e} A")
             for idx, val in enumerate(voltage_results):
                 print(f"    [{idx}]:\t {val:.6e} V")
+                
 
 
 
