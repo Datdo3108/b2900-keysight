@@ -20,13 +20,15 @@ def main():
     or a VISA alias.  For more information on using VISA aliases, refer to the Keysight IO
     Libraries Connection Expert documentation.
     """
-    resource_name = "MyVisaAlias"
+    # resource_name = "MyVisaAlias"
     #resource_name = "TCPIP0::<IP_Address>::INSTR"
+    resource_name = "USB0::0x0957::0xD018::MY51142876::0::INSTR"
 
     #  Edit the initialization options as needed
     idQuery = True
     reset   = True
-    options = "QueryInstrStatus=False, Simulate=True, Trace=False"
+    # options = "QueryInstrStatus=False, Simulate=True, Trace=False"
+    options = "QueryInstrStatus=False, Simulate=False, Trace=False"
 
     try:
         print("\n  keysight_ktb2900 Python API Example1\n")
@@ -45,6 +47,7 @@ def main():
         print('  model:      ', driver.identity.instrument_model)
         print('  resource:   ', driver.driver_operation.io_resource_descriptor)
         print('  options:    ', driver.driver_operation.driver_setup)
+        print('  channels:   ', driver.outputs.count)
 
 
         iNumberOfChannels = driver.outputs.count;

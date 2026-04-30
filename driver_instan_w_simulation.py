@@ -6,6 +6,7 @@ def main():
    # Edit resource_name and options as needed.  resource_name is ignored if option Simulate=True
    resource_name = "MyVisaAlias"
    #resource_name = "TCPIP0::127.0.0.1::INSTR"
+   # resource_name = "USB0::10893::8964::MY65150411::0::INSTR"
    id_query = False
    reset = False
    options = "Simulate=True, QueryInstrStatus=True"
