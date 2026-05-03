@@ -27,7 +27,6 @@ resource_name = "USB0::0x0957::0xD018::MY51142876::0::INSTR"
 
 idQuery = True
 reset   = True
-# options = "DriverSetup=Model:B2912A, QueryInstrStatus=False, Simulate=True, Trace=False"
 # For real hardware, use:
 options = "QueryInstrStatus=True, Simulate=False, Trace=False"
 
@@ -58,13 +57,17 @@ def main():
         # ── Identity ──────────────────────────────────────────────────────
         model    = driver.identity.instrument_model
         resource = driver.driver_operation.io_resource_descriptor
+        vendor = driver.identity.vendor
+        supported_models = driver.identity.get_supported_instrument_models()
         print(f"  Model    : {model}")
         print(f"  Resource : {resource}")
-        
-        print(f"  Driver setup : {driver.driver_operation.driver_setup}")
+        print(f"  Vendor   : {vendor}")
+        print(f"  Driver setup    : {driver.driver_operation.driver_setup}")
+        print(f"  Supported model : {supported_models}")
 
         num_channels = driver.outputs.count
         print(f"  Channels : {num_channels}")
+        print(f"  Len channels: {len(driver.outputs)}")         # same as .count
         
         # ── Generate ramp waveform ─────────────────────────────────────
         sample_rate = 10          # Hz
@@ -128,31 +131,39 @@ def main():
                 
             print(f"\n  Channel {i + 1} ({chan_str}) output ON  →  {VOLTAGE_V:+.4f} V")
 
-            time_0 = time.time()
-            # driver.transients.arm_immediate(chan_str)
-            # driver.transients.initiate(chan_str)            
-            driver.trigger.initiate(chan_str)
-            
-            ctime = time.time() - time_0
-            print(f"Task finished in:\t {ctime:.4f}s")
-            
-            # Get measurements data
-            current_results = driver.measurements.fetch_array_data(
-                keysight_ktb2900.MeasurementFetchType.CURRENT,
-                chan_str,
-            )
-            
-            voltage_results = driver.measurements.fetch_array_data(
-                keysight_ktb2900.MeasurementFetchType.VOLTAGE,
-                chan_str,
-            )
+            for i in range(1):
 
-            print(f"  Measured current data ({chan_str}):")
-            # for idx, val in enumerate(current_results):
-            #     print(f"    [{idx}]:\t {val:.6e} A")
-            for idx, val in enumerate(voltage_results):
-                print(f"    [{idx}]:\t {val:.6e} V")
+                time_0 = time.time()
+                # driver.transients.arm_immediate(chan_str)
+                # driver.transients.initiate(chan_str)            
+                driver.trigger.initiate(chan_str)
                 
+                ctime = time.time() - time_0
+                print(f"Task finished in:\t {ctime:.6f}s")
+                
+                # Get measurements data
+                current_results = driver.measurements.fetch_array_data(
+                    keysight_ktb2900.MeasurementFetchType.CURRENT,
+                    chan_str,
+                )
+                
+                voltage_results = driver.measurements.fetch_array_data(
+                    keysight_ktb2900.MeasurementFetchType.VOLTAGE,
+                    chan_str,
+                )
+                
+                ctime = time.time() - time_0
+                print(f"Task 1 finished in:\t {ctime:.6f}s")
+
+                print(f"  Measured current data ({chan_str}):")
+                # for idx, val in enumerate(current_results):
+                #     print(f"    [{idx}]:\t {val:.6e} A")
+                for idx, val in enumerate(voltage_results):
+                    print(f"    [{idx}]:\t {val:.6e} V")
+                    
+                ctime = time.time() - time_0
+                print(f"Task 2 finished in:\t {ctime:.6f}s")
+                    
 
 
 
