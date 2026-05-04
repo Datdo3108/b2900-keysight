@@ -90,33 +90,35 @@ def main():
             print(f"\n  Channel {i + 1} ({chan_str}) output ON")
 
             time_0 = time.time()         
-            driver.trigger.initiate(chan_str)
             
-            ctime = time.time() - time_0
-            print(f"Task finished in:\t {ctime:.6f}s")
-            
-            # Get measurements data
-            current_results = driver.measurements.fetch_array_data(
-                keysight_ktb2900.MeasurementFetchType.CURRENT,
-                chan_str,
-            )
-            
-            voltage_results = driver.measurements.fetch_array_data(
-                keysight_ktb2900.MeasurementFetchType.VOLTAGE,
-                chan_str,
-            )
-            
-            ctime = time.time() - time_0
-            print(f"Task 1 finished in:\t {ctime:.6f}s")
-
-            print(f"  Measured current data ({chan_str}):")
-            # for idx, val in enumerate(current_results):
-            #     print(f"    [{idx}]:\t {val:.6e} A")
-            for idx, val in enumerate(voltage_results):
-                print(f"    [{idx}]:\t {val:.6e} V")
+            for i in range(2):
+                driver.trigger.initiate(chan_str)
                 
-            ctime = time.time() - time_0
-            print(f"Task 2 finished in:\t {ctime:.6f}s")
+                ctime = time.time() - time_0
+                print(f"Trigger task finished in    :\t {ctime:.6f}s")
+                
+                # Get measurements data
+                current_results = driver.measurements.fetch_array_data(
+                    keysight_ktb2900.MeasurementFetchType.CURRENT,
+                    chan_str,
+                )
+                
+                voltage_results = driver.measurements.fetch_array_data(
+                    keysight_ktb2900.MeasurementFetchType.VOLTAGE,
+                    chan_str,
+                )
+                
+                ctime = time.time() - time_0
+                print(f"Data fetch finished in      :\t {ctime:.6f}s")
+
+                print(f"  Measured current data ({chan_str}):")
+                # for idx, val in enumerate(current_results):
+                #     print(f"    [{idx}]:\t {val:.6e} A")
+                for idx, val in enumerate(voltage_results):
+                    print(f"    [{idx}]:\t {val:.6e} V")
+                    
+                ctime = time.time() - time_0
+                print(f"Print out finished in       :\t {ctime:.6f}s")
 
 
         # ── Wait before turning off ───────────────────────────────────────

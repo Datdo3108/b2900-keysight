@@ -105,7 +105,8 @@ class B2900Channel:
         transient.trigger.count = len(voltage_profile)
 
         query = transient.voltage.query_list()
-        print(f"  Channel {self.number} — query list : {query}")
+        print(f"  Channel {self.number} — query len  : {len(query)}")
+        print(f"  Channel {self.number} — query list : {query[1:5]}   to {query[-5:-1]}")
         print(f"  Channel {self.number} — timer      : {transient.trigger.timer}")
 
     def configure_measurement_trigger(
@@ -291,7 +292,7 @@ class B2900HardwareWorker(QThread):
         meas_count: int      = 101,
         meas_timer_ms: float = 1.0,
         trigger_timer_ms: float = 5.0,
-        chunk_size: int      = 100,
+        chunk_size: int      = 1000 ,
     ):
         super().__init__()
         self._smu              = controller
@@ -300,10 +301,15 @@ class B2900HardwareWorker(QThread):
         self._voltage_range    = voltage_range
         self._current_nplc     = current_nplc
         self._meas_count       = meas_count
-        self._meas_timer_ms    = meas_timer_ms
-        self._trigger_timer_ms = trigger_timer_ms
+        # self._meas_timer_ms    = meas_timer_ms
+        # self._trigger_timer_ms = trigger_timer_ms
+        self._meas_timer_ms    = 1.0 / sample_rate * 1000
+        self._trigger_timer_ms = 1.0 / sample_rate * 1000
         self._chunk_size       = chunk_size 
         self._running          = True
+        print(f"Sample rate         : {sample_rate}")
+        print(f"Measure timer       : {self._meas_timer_ms}")
+        print(f"Trigger timer       : {self._trigger_timer_ms}")
 
     def run(self):
         try:
@@ -327,11 +333,11 @@ class B2900HardwareWorker(QThread):
                     # Load only this chunk's points
                     ch.configure_voltage_list(
                         chunk,
-                        trigger_timer_ms=self._trigger_timer_ms,
+                        trigger_timer_ms=self._trigger_timer_ms,        # Update with trigger-rate
                     )
                     ch.configure_measurement_trigger(
                         count=len(chunk),
-                        timer_ms=self._meas_timer_ms,
+                        timer_ms=self._meas_timer_ms,           # Update with sample-rate
                     )
                     ch.initiate()
 
@@ -342,15 +348,29 @@ class B2900HardwareWorker(QThread):
                     voltage_data = np.resize(voltage_data, n)
                     current_data = np.resize(current_data, n)
 
+                    # t0 = time.perf_counter()
+                    # for idx in range(n):
+                    #     t = t_offset + idx * self._dt
+                    #     elapsed = time.perf_counter() - t0 - (idx * self._dt)
+                    #     if self._dt - elapsed > 0:
+                    #         time.sleep(self._dt - elapsed)
+                    #     self.new_sample.emit(t, float(voltage_data[idx]), float(current_data[idx]))
+
+                    # t_offset += n * self._dt
+                    
+                    chunk_duration = n * self._dt
                     t0 = time.perf_counter()
+
                     for idx in range(n):
                         t = t_offset + idx * self._dt
-                        elapsed = time.perf_counter() - t0 - (idx * self._dt)
-                        if self._dt - elapsed > 0:
-                            time.sleep(self._dt - elapsed)
                         self.new_sample.emit(t, float(voltage_data[idx]), float(current_data[idx]))
 
-                    t_offset += n * self._dt
+                    elapsed = time.perf_counter() - t0
+                    remaining = chunk_duration - elapsed
+                    # if remaining > 0:
+                    #     time.sleep(remaining)
+
+                    t_offset += chunk_duration
                 
         except Exception as exc:
             self.error.emit(f"{exc.__class__.__name__}: {exc}")
@@ -478,11 +498,17 @@ class SMUCombinedApp(QMainWindow):
 
         self.lbl_hw_status = QLabel("● Disconnected")
         self.lbl_hw_status.setObjectName("secondary")
+        
+        lbl_chunk = QLabel("Chunk size")
+        lbl_chunk.setObjectName("secondary")
+        self.edit_chunk = QLineEdit("100")
 
         vbox.addWidget(lbl)
         vbox.addWidget(self.edit_resource)
         vbox.addLayout(btn_row)
         vbox.addWidget(self.lbl_hw_status)
+        vbox.addWidget(lbl_chunk)
+        vbox.addWidget(self.edit_chunk)
         return grp
 
     def _build_control_group(self) -> QGroupBox:
@@ -494,12 +520,24 @@ class SMUCombinedApp(QMainWindow):
         self.btn_start.setObjectName("start")
         self.btn_stop  = QPushButton("■  Stop")
         self.btn_stop.setObjectName("stop")
+        self.btn_preview = QPushButton("⌁  Preview")
+        self.btn_preview.setObjectName("save")   # blue style
 
         self.btn_start.clicked.connect(self._on_start)
         self.btn_stop.clicked.connect(self._on_stop)
+        
+        # self.btn_clear = QPushButton("✕  Clear")
+        # self.btn_clear.setObjectName("save")   # blue, or make a new style if you prefer
+        # self.btn_clear.clicked.connect(self._on_clear)
+        self.btn_preview.clicked.connect(self._refresh_preview)
+
 
         hbox.addWidget(self.btn_start)
         hbox.addWidget(self.btn_stop)
+        # hbox.addWidget(self.btn_clear)
+        hbox.addWidget(self.btn_preview)
+
+
         return grp
 
     def _build_waveform_group(self) -> QGroupBox:
@@ -634,8 +672,8 @@ class SMUCombinedApp(QMainWindow):
     #     self._set_status("Connection failed", ACCENT_HOT)
         
     def _on_connect(self):
-        # resource = self.edit_resource.text().strip()
-        resource = "USB0::0x0957::0xD018::MY51142876::0::INSTR"
+        resource = self.edit_resource.text().strip()
+        # resource = "USB0::0x0957::0xD018::MY51142876::0::INSTR"
         if not resource:
             QMessageBox.warning(self, "Missing resource", "Enter a VISA resource string.")
             return
@@ -699,7 +737,8 @@ class SMUCombinedApp(QMainWindow):
         if self._smu is not None:
             # ── Real hardware path ──────────────────────────────────────
             self._worker = B2900HardwareWorker(
-                self._smu, profile, rate
+                self._smu, profile, rate,
+                chunk_size=int(self.edit_chunk.text() or 100),
             )
             self._worker.error.connect(self._on_worker_error)
             self._set_status("Running on hardware…", ACCENT)
@@ -718,6 +757,15 @@ class SMUCombinedApp(QMainWindow):
             self._worker.stop()
             self._worker.wait()
         self._on_run_finished()
+        
+    def _on_clear(self):
+        self._time_data.clear()
+        self._volt_data.clear()
+        self._curr_data.clear()
+        self.curve_v_live.setData([], [])
+        self.curve_i_live.setData([], [])
+        self.curve_v_preview.setData([], [])
+        self._set_status("Graph cleared", TEXT_SEC)
 
     def _on_new_sample(self, t: float, v: float, i: float):
         self._time_data.append(t)
@@ -744,6 +792,7 @@ class SMUCombinedApp(QMainWindow):
 
     def _refresh_preview(self):
         try:
+            self._on_clear()
             profile, rate = self._current_panel().build_profile()
             t = np.arange(len(profile)) / rate
             self.curve_v_preview.setData(t, profile)

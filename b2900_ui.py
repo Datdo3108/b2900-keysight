@@ -168,27 +168,28 @@ def make_sine(amplitude, offset, num_points):
 #             break
 #     return np.array(profile)
 
-def make_sqv(v_base, v_step, sq_amplitude, freq, sample_rate, direction="forward"):
+def make_sqv(v_base, v_step, sq_amplitude, freq, sample_rate, v_final=1.0, direction="forward"):
     samples_per_half = max(1, int(sample_rate / (2 * freq)))
     
     def _sweep(step_sign):
         profile = []
         step = v_base
-        for _ in range(200):                        # max 200 steps
+        num_steps = int(abs(v_final - v_base) / abs(v_step))
+        for _ in range(num_steps):
             profile.extend([step + sq_amplitude] * samples_per_half)
             profile.extend([step - sq_amplitude] * samples_per_half)
             step += v_step * step_sign
-            if len(profile) > 10_000:
-                break
+            # if len(profile) > 10_000:
+            #     break
         return np.array(profile)
 
     if direction == "forward":
         return _sweep(+1)
     elif direction == "reverse":
-        return _sweep(-1) + sq_amplitude * freq/2
+        return _sweep(-1) + v_final
     else:                                           # dual
         fwd = _sweep(+1)
-        rev = _sweep(-1) + sq_amplitude * freq/2
+        rev = _sweep(-1) + v_final
         return np.concatenate([fwd, rev])
 
 # ── Worker thread ──────────────────────────────────────────────────────────────
@@ -344,10 +345,11 @@ class SqvParamPanel(QWidget):
         l3, self.freq       = _make_field("SW frequency (Hz)",    25.0)
         l4, self.rate       = _make_field("Sample rate (Hz)",     1000.0)
         l5, self.cycles     = _make_field("Cycles",               1)
+        l6, self.v_final    = _make_field("Final potential (V)", 1.0)
 
         for row, (lbl, edit) in enumerate(
             [(l0, self.v_base), (l1, self.v_step), (l2, self.sq_amp),
-             (l3, self.freq),   (l4, self.rate),   (l5, self.cycles)]
+             (l3, self.freq),   (l4, self.rate),   (l5, self.cycles), (l6, self.v_final)]
         ):
             grid.addWidget(lbl,  row, 0)
             grid.addWidget(edit, row, 1)
@@ -356,8 +358,8 @@ class SqvParamPanel(QWidget):
         lbl_dir.setObjectName("secondary")
         self.cmb_direction = QComboBox()
         self.cmb_direction.addItems(["Forward", "Reverse", "Dual"])
-        grid.addWidget(lbl_dir,          6, 0)
-        grid.addWidget(self.cmb_direction, 6, 1)
+        grid.addWidget(lbl_dir,          7, 0)
+        grid.addWidget(self.cmb_direction, 7, 1)
 
     def build_profile(self):
         direction = self.cmb_direction.currentText().lower()
@@ -367,6 +369,7 @@ class SqvParamPanel(QWidget):
             float(self.sq_amp.text()),
             float(self.freq.text()),
             float(self.rate.text()),
+            v_final=float(self.v_final.text()),
             direction=direction,
         )
         profile = np.tile(profile, max(int(self.cycles.text()), 1))
@@ -437,9 +440,14 @@ class SMUApp(QMainWindow):
 
         self.btn_start.clicked.connect(self._on_start)
         self.btn_stop.clicked.connect(self._on_stop)
+        
+        self.btn_preview = QPushButton("⌁  Preview")
+        self.btn_preview.setObjectName("save")   # blue style
+        self.btn_preview.clicked.connect(self._refresh_preview)
 
         hbox.addWidget(self.btn_start)
         hbox.addWidget(self.btn_stop)
+        hbox.addWidget(self.btn_preview)
         return grp
 
     def _build_waveform_group(self) -> QGroupBox:
