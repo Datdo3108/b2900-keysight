@@ -172,6 +172,7 @@ class B2900Controller:
 
     def open(self) -> None:
         """Open the driver connection and discover channels."""
+        print("Opening driver...")
         self._driver = keysight_ktb2900.KtB2900(
             self._resource_name, self._id_query, self._reset, self._options
         )

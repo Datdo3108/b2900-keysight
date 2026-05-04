@@ -824,3 +824,91 @@
    Info -   4.161717 s      4.2 uS    Returned: value=KtB2900_Trace.log
    Info -   4.164478 s      2.8 mS  --- KtB2900.Close() ---
    Info -   4.165272 s    793.7 uS  2026-05-01 15_46_25 - flush request
+
+  Level     TimeStamp    DeltaTime    Message
+   Info -   0.000000 s        0 nS  KtB2900(USB0::0x0957::0xD018::MY51142876::0::INSTR, true, true, QueryInstrStatus=True, Simulate=False, Trace=True)
+  Error -   0.263064 s    263.1 mS  VI_ERROR_NCIC: Not the controller-in-charge
+   Info -   0.264344 s      1.3 mS  --- KtB2900.Close() ---
+   Info -   0.265254 s    909.7 uS  2026-05-04 07_20_50 - flush request
+
+  Level     TimeStamp    DeltaTime    Message
+   Info -   0.000000 s        0 nS  KtB2900(USB0::0x0957::0xD018::MY51142876::0::INSTR, true, true, QueryInstrStatus=True, Simulate=False, Trace=True)
+  Debug -   0.497954 s    498.0 mS    Command: *IDN?
+  Debug -   0.512094 s     14.1 mS    Response: Keysight Technologies,B2912A,MY51142876,3.4.2011.5100
+  Debug -   0.512123 s     29.1 uS    Command: *RST;*OPC?
+  Debug -   0.764511 s    252.4 mS    Response: 1
+  Debug -   0.764521 s     10.5 uS    Command: *CLS
+   Info -   0.787427 s     22.9 mS  IviDriverIdentity.GetInstrumentModel()
+   Info -   0.787434 s      7.6 uS    Returned: value=B2912A
+   Info -   0.787948 s    514.0 uS  IviDriverIdentity.GetInstrumentModel()
+   Info -   0.787952 s      3.4 uS    Returned: value=B2912A
+   Info -   0.787957 s      5.3 uS  IviDriverOperation.GetIOResourceDescriptor()
+   Info -   0.787958 s      1.6 uS    Returned: value=USB0::0x0957::0xD018::MY51142876::0::INSTR
+   Info -   0.788086 s    127.3 uS  IviDriverOperation.GetDriverSetup()
+   Info -   0.788090 s      4.0 uS    Returned: value=QueryInstrStatus=True, Simulate=False, Trace=True
+   Info -   0.788373 s    282.8 uS  OutputChannelCollection.GetCount()
+   Info -   0.788420 s     47.5 uS    Returned: value=1
+   Info -   0.788806 s    386.1 uS  OutputChannelVoltage.SetAutoRangeEnabled(value=False)
+  Debug -   0.789073 s    267.3 uS    Command: SOUR1:VOLT:RANG:AUTO 0
+  Debug -   0.789210 s    137.0 uS    Command: *ESR?
+  Debug -   0.807185 s     18.0 mS    Response: 0
+   Info -   0.807288 s    103.2 uS  OutputChannelVoltage.SetRange(value=20)
+  Debug -   0.807306 s     17.4 uS    Command: SOUR1:VOLT:RANG 20
+  Debug -   0.807556 s    250.2 uS    Command: *ESR?
+  Debug -   0.826482 s     18.9 mS    Response: 0
+   Info -   0.826564 s     81.8 uS  OutputChannelVoltage.SetLevel(value=0.04)
+  Debug -   0.826587 s     23.0 uS    Command: SOUR1:VOLT 0.04
+  Debug -   0.826681 s     93.7 uS    Command: *ESR?
+  Debug -   0.842938 s     16.3 mS    Response: 0
+   Info -   0.843019 s     81.5 uS  OutputChannelVoltage.SetTriggeredLevel(value=0.04)
+  Debug -   0.843041 s     21.3 uS    Command: SOUR1:VOLT:TRIG 0.04
+  Debug -   0.845923 s      2.9 mS    Command: *ESR?
+  Debug -   0.856773 s     10.8 mS    Response: 0
+   Info -   0.856870 s     97.2 uS  MeasurementCurrent.SetAutoRangeEnabled(value=True)
+  Debug -   0.856889 s     18.8 uS    Command: SENS1:CURR:RANG:AUTO 1
+  Debug -   0.857748 s    859.0 uS    Command: *ESR?
+  Debug -   0.860523 s      2.8 mS    Response: 0
+   Info -   0.861734 s      1.2 mS  MeasurementCurrent.SetNPLC(value=0.1)
+  Debug -   0.861759 s     24.7 uS    Command: SENS1:CURR:NPLC 0.1
+  Debug -   0.862577 s    818.4 uS    Command: *ESR?
+  Debug -   0.865673 s      3.1 mS    Response: 0
+   Info -   0.865742 s     69.2 uS  OutputChannel.SetEnabled(value=True)
+  Debug -   0.865760 s     18.3 uS    Command: OUTP1 1
+  Debug -   0.866055 s    294.8 uS    Command: *ESR?
+  Debug -   0.888268 s     22.2 mS    Response: 0
+   Info -   0.889707 s      1.4 mS  Trigger.Initiate(chanlist=(@1))
+  Debug -   0.889731 s     23.3 uS    Command: INIT (@1)
+  Debug -   0.889874 s    143.8 uS    Command: *ESR?
+  Debug -   0.894100 s      4.2 mS    Response: 0
+   Info -   2.291924 s    1.398 s  MeasurementCollection.FetchArrayData(fetchType=Current, chanList=(@1))
+   Info -   2.291938 s     14.2 uS  MeasurementCollectionFormat.SetType(value=Real64)
+  Debug -   2.291955 s     16.8 uS    Command: FORM REAL,64
+  Debug -   2.292095 s    140.6 uS    Command: *ESR?
+  Debug -   2.293701 s      1.6 mS    Response: 0
+  Debug -   2.293722 s     21.5 uS    Command: FETC:ARR:CURR? (@1)
+  Debug -   2.295591 s      1.9 mS    Response: #18>Q£áπ}t
+  Debug -   2.295638 s     47.5 uS    Command: *ESR?
+  Debug -   2.296792 s      1.2 mS    Response: 0
+   Info -   2.296830 s     37.8 uS    Returned: ret=AnyVector(1){ 1.823e-09 }
+   Info -   2.296888 s     57.8 uS  MeasurementCollection.FetchArrayData(fetchType=Voltage, chanList=(@1))
+   Info -   2.296896 s      8.0 uS  MeasurementCollectionFormat.SetType(value=Real64)
+  Debug -   2.296908 s     12.7 uS    Command: FORM REAL,64
+  Debug -   2.297013 s    104.7 uS    Command: *ESR?
+  Debug -   2.298667 s      1.7 mS    Response: 0
+  Debug -   2.298687 s     20.5 uS    Command: FETC:ARR:VOLT? (@1)
+  Debug -   2.300330 s      1.6 mS    Response: #18?§z·GÆ{
+  Debug -   2.300359 s     29.6 uS    Command: *ESR?
+  Debug -   2.301589 s      1.2 mS    Response: 0
+   Info -   2.301615 s     26.0 uS    Returned: ret=AnyVector(1){ 0.04 }
+   Info -   6.292566 s    3.991 s  OutputChannel.SetEnabled(value=False)
+  Debug -   6.292584 s     18.1 uS    Command: OUTP1 0
+  Debug -   6.292765 s    181.3 uS    Command: *ESR?
+  Debug -   6.335145 s     42.4 mS    Response: 0
+   Info -   6.335539 s    393.9 uS  IviDriverUtility.ErrorQuery()
+  Debug -   6.335540 s      1.5 uS    Command: SYST:ERR?
+  Debug -   6.337017 s      1.5 mS    Response: +0,"No error"
+   Info -   6.337033 s     15.4 uS    Returned: ret=ErrorQueryResult{Code:0, Message:"No error"}
+   Info -   6.337221 s    187.9 uS  SystemTracing.GetFileName()
+   Info -   6.337224 s      3.3 uS    Returned: value=KtB2900_Trace.log
+   Info -   6.339880 s      2.7 mS  --- KtB2900.Close() ---
+   Info -   6.340855 s    974.6 uS  2026-05-04 07_23_16 - flush request
